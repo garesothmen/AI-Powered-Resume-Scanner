@@ -5,7 +5,7 @@ from qa_engine import create_vectorstore, get_answer
 st.set_page_config(page_title="PDF Q&A Bot", layout="centered")
 st.title("📄 Ask Questions About Your PDF")
 
-uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
+uploaded_file = st.file_uploader("Upload a PDF file", type="pdf") 
 
 if uploaded_file:
     with st.spinner("Reading and indexing PDF..."):
