@@ -19,7 +19,7 @@ def create_vectorstore(text):
 
 def get_answer(vectorstore, query):
     # Local text generation model
-    qa_pipeline = pipeline("text2text-generation", model="google/flan-t5-base", device=0)  # use device=0 if you have a GPU
+    qa_pipeline = pipeline("text2text-generation", model="google/flan-t5-small")  # use device=0 if you have a GPU
     llm = HuggingFacePipeline(pipeline=qa_pipeline)
 
     chain = load_qa_chain(llm, chain_type="stuff")
