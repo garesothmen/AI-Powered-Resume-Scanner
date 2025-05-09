@@ -178,4 +178,4 @@ venv/
 # Environment variables
 .env
 # Ignore data folders
-./cv_folder
+cv_folder/
