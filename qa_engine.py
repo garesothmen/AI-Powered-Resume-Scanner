@@ -5,9 +5,6 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.llms import HuggingFacePipeline
 from transformers import pipeline
-from dotenv import load_dotenv
-
-load_dotenv()
 
 def create_vectorstore(text):
     splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)

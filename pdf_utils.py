@@ -1,16 +1,14 @@
-# import fitz  # PyMuPDF
-
-# def extract_text_from_pdf(uploaded_file):
-#     doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
-#     text = ""
-#     for page in doc:
-#         text += page.get_text()
-#     return text
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
-from dotenv import load_dotenv
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, AutoModelForSeq2SeqLM
 import os
-load_dotenv()
-hugg_key = os.getenv("hugg_key")
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+import torch
+import numpy as np
+import faiss
+import zipfile
+import fitz
+import requests
+
 def chunk_text(text, chunk_size=500):
     paragraphs = text.split("\n")
     chunks, chunk = [], ""
@@ -24,9 +22,6 @@ def chunk_text(text, chunk_size=500):
         chunks.append(chunk.strip())
     return chunks
 
-from sentence_transformers import SentenceTransformer
-import faiss
-import numpy as np
 
 model = SentenceTransformer('google/flan-t5-small')
 
@@ -36,7 +31,7 @@ def embed_chunks(chunks):
     index.add(np.array(embeddings))
     return index, embeddings
 
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
 
 tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
 model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
@@ -46,7 +41,6 @@ def generate_response(prompt, max_length=200):
     outputs = model.generate(**inputs, max_length=max_length)
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
 model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
@@ -67,8 +61,7 @@ def answer_question(query, chunks, embeddings, index):
     prompt = f"Context:\n{context}\n\nQuestion: {query}\nAnswer:"
     return generate_response(prompt)
 
-import zipfile
-import os
+
 
 def extract_zip(uploaded_zip, extract_to="cv_folder"):
     with zipfile.ZipFile(uploaded_zip, 'r') as zip_ref:
@@ -76,16 +69,12 @@ def extract_zip(uploaded_zip, extract_to="cv_folder"):
     return [os.path.join(extract_to+'/Resume', f) for f in os.listdir(extract_to+'/Resume') if f.endswith('.pdf')]
 
 
-import fitz
 
 def extract_text_from_pdf(file_path):
     doc = fitz.open(file_path)
     return "\n".join([page.get_text() for page in doc])
 
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
-import torch
-import numpy as np
+
 
 embedding_model = SentenceTransformer("google/flan-t5-small")
 
@@ -110,7 +99,7 @@ def rank_cvs_against_job(cv_texts, cv_paths, job_description):
     scores = cosine_similarity(job_embedding_np, cv_embeddings_np)[0]
     ranked = sorted(zip(cv_paths, scores), key=lambda x: x[1], reverse=True)
     return ranked
-
+### This  bloc replaces API calls by downloading the model locally
 # model_name = "mistralai/Mistral-7B-Instruct-v0.3"
 # token=hugg_key
 # tokenizer = AutoTokenizer.from_pretrained(model_name,use_auth_token=token)
@@ -146,28 +135,26 @@ def rank_cvs_against_job(cv_texts, cv_paths, job_description):
 
 
 
-import requests
+
 
 API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
-HF_TOKEN = hugg_key  # <- Ton token ici
 
-headers = {
-    "Authorization": f"Bearer {HF_TOKEN}"
+def generate_feedback(cv_text, job_description, score,hf_token):
+    headers = {
+    "Authorization": f"Bearer {hf_token}"
 }
-
-def generate_feedback(cv_text, job_description, score):
     prompt = f"""
-Tu es un expert en ressources humaines.
+You are a human resources expert.I am provinding you with a job description and a resume.
 
-Voici la description de poste :
+here is the Job Description :
 \"\"\"{job_description}\"\"\"
 
-Voici un CV, avec une pertinence actuelle de {score:.2f} :
+here is a resume, with an actual pertinence of {score:.2f} :
 \"\"\"{cv_text}\"\"\"
 
-Ta tâche : Identifie les manques, incohérences ou parties faibles du CV par rapport à l'offre. 
-Donne des conseils concrets pour l’améliorer afin d’atteindre une pertinence de 0.90 ou plus.
-Réponds sous forme d’une liste claire et professionnelle.
+Your task: Identify gaps, inconsistencies, or weak points in your resume relative to the job offer.
+Provide concrete advice on how to improve it to achieve a relevance score of 0.90 or higher.
+Respond in a clear and professional manner.
 """
 
     payload = {
