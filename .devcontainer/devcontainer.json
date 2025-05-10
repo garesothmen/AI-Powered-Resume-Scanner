@@ -1,6 +1,5 @@
 {
   "name": "Python 3",
-  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
   "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bullseye",
   "customizations": {
     "codespaces": {
@@ -17,7 +16,7 @@
       ]
     }
   },
-  "updateContentCommand": "sudo apt get update  &&  apt get install -y build-essential python3-dev python3-pip python3-setuptools python3-wheel &&  pip install --upgrade pip setuptools wheel; RUN pip install pipenv build ;[ -f packages.txt ] && sudo apt update && sudo apt upgrade -y && sudo xargs apt install -y <packages.txt; [ -f requirements.txt ] && pip3 install --user -r requirements.txt; pip3 install --user streamlit; echo '✅ Packages installed and Requirements met'",
+  "updateContentCommand": "sudo apt-get update && sudo apt-get install -y build-essential python3-dev python3-pip python3-setuptools python3-wheel && pip install --upgrade pip setuptools wheel build pipenv && [ -f packages.txt ] && xargs sudo apt install -y < packages.txt && [ -f requirements.txt ] && pip install --user -r requirements.txt && pip install --user streamlit && echo '✅ Packages installed and Requirements met'",
   "postAttachCommand": {
     "server": "streamlit run matchy.py --server.enableCORS false --server.enableXsrfProtection false"
   },
