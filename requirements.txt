@@ -1,10 +1,3 @@
-numpy==1.24.0
-pymupdf==1.21.1
-scikit-learn==1.1.3
-torch==2.0.1
-torchaudio==2.0.2
-torchtext==0.6.0
-torchvision==0.15.2
-streamlit
-transformers
-sentence-transformers
+Building requirements...
+Resolving dependencies...
+Success!
