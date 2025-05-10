@@ -6,6 +6,11 @@
 #     for page in doc:
 #         text += page.get_text()
 #     return text
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+from dotenv import load_dotenv
+import os
+load_dotenv()
+hugg_key = os.getenv("hugg_key")
 def chunk_text(text, chunk_size=500):
     paragraphs = text.split("\n")
     chunks, chunk = [], ""
@@ -23,7 +28,7 @@ from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer('google/flan-t5-small')
 
 def embed_chunks(chunks):
     embeddings = model.encode(chunks)
@@ -82,7 +87,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import torch
 import numpy as np
 
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+embedding_model = SentenceTransformer("google/flan-t5-small")
 
 def embed_documents(doc_texts):
     if not doc_texts:
@@ -105,3 +110,74 @@ def rank_cvs_against_job(cv_texts, cv_paths, job_description):
     scores = cosine_similarity(job_embedding_np, cv_embeddings_np)[0]
     ranked = sorted(zip(cv_paths, scores), key=lambda x: x[1], reverse=True)
     return ranked
+
+# model_name = "mistralai/Mistral-7B-Instruct-v0.3"
+# token=hugg_key
+# tokenizer = AutoTokenizer.from_pretrained(model_name,use_auth_token=token)
+# model = AutoModelForCausalLM.from_pretrained(
+#     model_name,
+#     device_map="auto",            # met "cpu" si tu n’as pas de GPU
+#     torch_dtype="auto",           # ou torch.float16 avec GPU
+#     use_auth_token=token
+# )
+
+# # Utiliser une pipeline pour simplifier
+# generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
+
+
+# def generate_feedback(cv_text, job_description, score):
+#     prompt = f"""
+# Tu es un expert en ressources humaines.
+
+# Voici la description de poste :
+# \"\"\"{job_description}\"\"\"
+
+# Voici un CV, avec une pertinence actuelle de {score:.2f} :
+# \"\"\"{cv_text}\"\"\"
+
+# Ta tâche : Identifie les manques, incohérences ou parties faibles du CV par rapport à l'offre. 
+# Donne des conseils concrets pour l’améliorer afin de viser une pertinence de 0.90 ou plus.
+# Réponds sous forme d’une liste claire et professionnelle.
+# """
+
+#     output = generator(prompt, max_new_tokens=512, temperature=0.7, do_sample=True)[0]["generated_text"]
+#     return output.replace(prompt, "").strip()
+
+
+
+
+import requests
+
+API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
+HF_TOKEN = hugg_key  # <- Ton token ici
+
+headers = {
+    "Authorization": f"Bearer {HF_TOKEN}"
+}
+
+def generate_feedback(cv_text, job_description, score):
+    prompt = f"""
+Tu es un expert en ressources humaines.
+
+Voici la description de poste :
+\"\"\"{job_description}\"\"\"
+
+Voici un CV, avec une pertinence actuelle de {score:.2f} :
+\"\"\"{cv_text}\"\"\"
+
+Ta tâche : Identifie les manques, incohérences ou parties faibles du CV par rapport à l'offre. 
+Donne des conseils concrets pour l’améliorer afin d’atteindre une pertinence de 0.90 ou plus.
+Réponds sous forme d’une liste claire et professionnelle.
+"""
+
+    payload = {
+        "inputs": prompt,
+        "parameters": {"max_new_tokens": 512, "temperature": 0.7}
+    }
+
+    response = requests.post(API_URL, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        return response.json()[0]["generated_text"].replace(prompt, "").strip()
+    else:
+        return f"Erreur {response.status_code} : {response.text}"
