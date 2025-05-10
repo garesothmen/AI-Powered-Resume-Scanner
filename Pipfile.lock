@@ -148,11 +148,11 @@
         },
         "huggingface-hub": {
             "hashes": [
-                "sha256:68ff05969927058cfa41df4f2155d4bb48f5f54f719dd0390103eefa9b191e28",
-                "sha256:9a7897c5b6fd9dad3168a794a8998d6378210f5b9688d0dfc180b1a228dc2466"
+                "sha256:43f73124819b48b42d140cbc0d7a2e6bd15b2853b1b9d728d4d55ad1750cac5b",
+                "sha256:492bb5f545337aa9e2f59b75ef4c5f535a371e8958a6ce90af056387e67f1180"
             ],
             "markers": "python_full_version >= '3.8.0'",
-            "version": "==0.30.2"
+            "version": "==0.31.1"
         },
         "idna": {
             "hashes": [
