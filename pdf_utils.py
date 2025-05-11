@@ -75,7 +75,6 @@ def extract_text_from_pdf(file_path):
     return "\n".join([page.get_text() for page in doc])
 
 
-
 embedding_model = SentenceTransformer("google/flan-t5-small")
 
 def embed_documents(doc_texts):
